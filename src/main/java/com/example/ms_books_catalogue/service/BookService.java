@@ -79,78 +79,47 @@ public class BookService {
         return repository.save(book);
     }
 
-    // Búsquedas por campos individuales
-    public List<Book> searchByTitulo(String titulo) {
-        return repository.findByTituloContainingIgnoreCase(titulo);
-    }
-
-    public List<Book> searchByAutor(String autor) {
-        return repository.findByAutorContainingIgnoreCase(autor);
-    }
-
-    public List<Book> searchByCategoria(String categoria) {
-        return repository.findByCategoria(categoria);
-    }
-
-    public List<Book> searchByIsbn(String isbn) {
-        return repository.findByIsbn(isbn);
-    }
-
-    public List<Book> searchByCalificacion(Integer calificacion) {
-        return repository.findByCalificacion(calificacion);
-    }
-
-    public List<Book> searchByVisible(Boolean visible) {
-        return repository.findByVisible(visible);
-    }
-
-    public List<Book> searchByPrecio(Double precio) {
-        return repository.findByPrecio(precio);
-    }
-
     // Búsqueda combinada con Specification
     public List<Book> searchCombined(String titulo, String autor, String categoria, String isbn,
                                      Integer calificacion, Boolean visible, Double precio) {
 
-        Specification<Book> spec = Specification.where(null);
+        Specification<Book> spec = emptySpec();
 
-        if (titulo != null && !titulo.isEmpty()) spec = spec.and(hasTitulo(titulo));
-        if (autor != null && !autor.isEmpty()) spec = spec.and(hasAutor(autor));
-        if (categoria != null && !categoria.isEmpty()) spec = spec.and(hasCategoria(categoria));
-        if (isbn != null && !isbn.isEmpty()) spec = spec.and(hasIsbn(isbn));
-        if (calificacion != null) spec = spec.and(hasCalificacion(calificacion));
-        if (visible != null) spec = spec.and(isVisible(visible));
-        if (precio != null) spec = spec.and(isPrecio(precio));
+        if (titulo != null && !titulo.isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.like(cb.lower(root.get("titulo")), "%" + titulo.toLowerCase() + "%"));
+        }
+        if (autor != null && !autor.isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.like(cb.lower(root.get("autor")), "%" + autor.toLowerCase() + "%"));
+        }
+        if (categoria != null && !categoria.isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("categoria"), categoria));
+        }
+        if (isbn != null && !isbn.isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("isbn"), isbn));
+        }
+        if (calificacion != null) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("calificacion"), calificacion));
+        }
+        if (visible != null) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("visible"), visible));
+        }
+        if (precio != null) {
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("precio"), precio));
+        }
 
         return repository.findAll(spec);
     }
 
-    // Métodos Specification para cada campo
-    private Specification<Book> hasTitulo(String titulo) {
-        return (root, query, cb) -> cb.like(cb.lower(root.get("titulo")), "%" + titulo.toLowerCase() + "%");
-    }
+    private Specification<Book> emptySpec() {
 
-    private Specification<Book> hasAutor(String autor) {
-        return (root, query, cb) -> cb.like(cb.lower(root.get("autor")), "%" + autor.toLowerCase() + "%");
-    }
-
-    private Specification<Book> hasCategoria(String categoria) {
-        return (root, query, cb) -> cb.equal(root.get("categoria"), categoria);
-    }
-
-    private Specification<Book> hasIsbn(String isbn) {
-        return (root, query, cb) -> cb.equal(root.get("isbn"), isbn);
-    }
-
-    private Specification<Book> hasCalificacion(Integer calificacion) {
-        return (root, query, cb) -> cb.equal(root.get("calificacion"), calificacion);
-    }
-
-    private Specification<Book> isVisible(Boolean visible) {
-        return (root, query, cb) -> cb.equal(root.get("visible"), visible);
-    }
-
-    private Specification<Book> isPrecio(Double precio) {
-        return (root, query, cb) -> cb.equal(root.get("precio"), precio);
+            return (root, query, cb) -> null;
+      
     }
 }

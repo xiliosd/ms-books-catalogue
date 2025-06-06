@@ -2,102 +2,100 @@ package com.example.ms_books_catalogue.controller;
 
 import com.example.ms_books_catalogue.model.Book;
 import com.example.ms_books_catalogue.service.BookService;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
-
 import java.util.List;
 
 @RestController
 @RequestMapping("/books")
+@Tag(name = "Books Controller", description = "Microservicio encargado de exponer operaciones de CRUD para libros")
 public class BookController {
 
     @Autowired
     private BookService service;
 
-    // Busqueda de todos los libros
+    // Obtener todos los libros y búsqueda
     @GetMapping
-    public List<Book> getAllBooks() {
-        return service.getAllBooks();
-    }
-    //Patch
-    @PatchMapping("/{id}")
-    public Book patchBook(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
-        return service.patchBook(id, updates);
-    }
-
-    // busqueda de libro por ID
-    @GetMapping("/{id}")
-    public Book getBook(@PathVariable Long id) {
-        return service.getBook(id);
-    }
-
-    //Busqueda combinada
-    @GetMapping("/search")
-    public List<Book> searchCombined(
+    public ResponseEntity<List<Book>> getBooks(
+            @Parameter(name = "titulo", description = "Título del libro")
             @RequestParam(required = false) String titulo,
+            @Parameter(name = "autor", description = "Autor del libro")
             @RequestParam(required = false) String autor,
+            @Parameter(name = "categoria", description = "Categoría del libro")
             @RequestParam(required = false) String categoria,
+            @Parameter(name = "isbn", description = "Código ISBN del libro")
             @RequestParam(required = false) String isbn,
+            @Parameter(name = "calificacion", description = "Calificación del libro de 1 a 5")
             @RequestParam(required = false) Integer calificacion,
+            @Parameter(name = "visible", description = "¿El libro es visible?")
             @RequestParam(required = false) Boolean visible,
+            @Parameter(name = "precio", description = "Precio del libro, debe ser exacto")
             @RequestParam(required = false) Double precio
     ) {
-        return service.searchCombined(titulo, autor, categoria, isbn, calificacion, visible, precio);
+        List<Book> books;
+        if (titulo == null && autor == null && categoria == null && isbn == null &&
+                calificacion == null && visible == null && precio == null) {
+            books = service.getAllBooks();
+        } else {
+            books = service.searchCombined(titulo, autor, categoria, isbn, calificacion, visible, precio);
+        }
+        return ResponseEntity.ok(books);
     }
 
+    // Obtener libro por ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Book> getBook(@PathVariable Long id) {
+        Book book = service.getBook(id);
+        if (book != null) {
+            return ResponseEntity.ok(book);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
 
-    // crear nuevo libro
+    // Crear nuevo libro
     @PostMapping
-    public Book createBook(@RequestBody Book book) {
-        return service.saveBook(book);
+    public ResponseEntity<Book> createBook(@RequestBody Book book) {
+        Book createdBook = service.saveBook(book);
+        return ResponseEntity.status(201).body(createdBook);
     }
 
-    // actualizar libro completo
+    // Actualizar libro completo
     @PutMapping("/{id}")
-    public Book updateBook(@PathVariable Long id, @RequestBody Book book) {
-        return service.updateBook(id, book);
+    public ResponseEntity<Book> updateBook(@PathVariable Long id, @RequestBody Book book) {
+        Book updatedBook = service.updateBook(id, book);
+        if (updatedBook != null) {
+            return ResponseEntity.ok(updatedBook);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
-    // eliminar libro
+    // Actualizar parcialmente un libro
+    @PatchMapping("/{id}")
+    public ResponseEntity<Book> patchBook(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
+        Book patchedBook = service.patchBook(id, updates);
+        if (patchedBook != null) {
+            return ResponseEntity.ok(patchedBook);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // Eliminar libro
     @DeleteMapping("/{id}")
-    public void deleteBook(@PathVariable Long id) {
-        service.deleteBook(id);
-    }
-
-    // Rutas de búsqueda individuales
-    @GetMapping("/search/titulo")
-    public List<Book> searchByTitulo(@RequestParam String titulo) {
-        return service.searchByTitulo(titulo);
-    }
-
-    @GetMapping("/search/autor")
-    public List<Book> searchByAutor(@RequestParam String autor) {
-        return service.searchByAutor(autor);
-    }
-
-    @GetMapping("/search/categoria")
-    public List<Book> searchByCategoria(@RequestParam String categoria) {
-        return service.searchByCategoria(categoria);
-    }
-
-    @GetMapping("/search/isbn")
-    public List<Book> searchByIsbn(@RequestParam String isbn) {
-        return service.searchByIsbn(isbn);
-    }
-
-    @GetMapping("/search/calificacion")
-    public List<Book> searchByCalificacion(@RequestParam Integer calificacion) {
-        return service.searchByCalificacion(calificacion);
-    }
-
-    @GetMapping("/search/visible")
-    public List<Book> searchByVisible(@RequestParam Boolean visible) {
-        return service.searchByVisible(visible);
-    }
-
-    @GetMapping("/search/precio")
-    public List<Book> searchByPrecio(@RequestParam Double precio) {
-        return service.searchByPrecio(precio);
+    public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
+        Book book = service.getBook(id);
+        if (book != null) {
+            service.deleteBook(id);
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
+
