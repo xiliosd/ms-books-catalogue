@@ -35,7 +35,7 @@ public class BookSpecifications {
                 cb.equal(root.get("visible"), visible);
     }
 
-    public static Specification<Book> isPrecio(Boolean precio) {
+    public static Specification<Book> isPrecio(Double precio) {
         return (root, query, cb) -> precio == null ? null :
                 cb.equal(root.get("precio"), precio);
     }

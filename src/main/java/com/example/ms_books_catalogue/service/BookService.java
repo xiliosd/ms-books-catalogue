@@ -120,6 +120,6 @@ public class BookService {
     private Specification<Book> emptySpec() {
 
             return (root, query, cb) -> null;
-      
+
     }
 }
