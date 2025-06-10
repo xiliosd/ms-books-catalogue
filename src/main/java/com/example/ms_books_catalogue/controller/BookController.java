@@ -92,7 +92,7 @@ public class BookController {
         Book book = service.getBook(id);
         if (book != null) {
             service.deleteBook(id);
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.ok().build();
         } else {
             return ResponseEntity.notFound().build();
         }
