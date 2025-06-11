@@ -1,5 +1,6 @@
 package com.example.ms_books_catalogue.controller;
 
+import com.example.ms_books_catalogue.dto.BookCreateRequest;
 import com.example.ms_books_catalogue.model.Book;
 import com.example.ms_books_catalogue.service.BookService;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -7,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.Map;
 import java.util.List;
 
@@ -57,9 +59,20 @@ public class BookController {
         }
     }
 
-    // Crear nuevo libro
+    // Crear nuevo libro usando DTO
     @PostMapping
-    public ResponseEntity<Book> createBook(@RequestBody Book book) {
+    public ResponseEntity<Book> createBook(@RequestBody BookCreateRequest request) {
+        Book book = new Book();
+        book.setTitulo(request.getTitulo());
+        book.setAutor(request.getAutor());
+        book.setFechapublicacion(request.getFechapublicacion());
+        book.setCategoria(request.getCategoria());
+        book.setIsbn(request.getIsbn());
+        book.setPrecio(request.getPrecio());
+        book.setVisible(request.getVisible());
+        book.setStock(request.getStock());
+        book.setCalificacion(request.getCalificacion());
+
         Book createdBook = service.saveBook(book);
         return ResponseEntity.status(201).body(createdBook);
     }
@@ -98,4 +111,3 @@ public class BookController {
         }
     }
 }
-
